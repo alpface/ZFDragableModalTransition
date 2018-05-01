@@ -30,6 +30,7 @@
         _behindViewScale = 0.9f;
         _behindViewAlpha = 1.0f;
         _transitionDuration = 0.8f;
+        _topViewScale = (ZFModalTransitonSizeScale){1.0, 1.0};
 
         [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -128,7 +129,14 @@
         }
 
         CGPoint transformedPoint = CGPointApplyAffineTransform(startRect.origin, toViewController.view.transform);
-        toViewController.view.frame = CGRectMake(transformedPoint.x, transformedPoint.y, startRect.size.width, startRect.size.height);
+        CGFloat toViewControllerHeight = startRect.size.height * self.topViewScale.heightScale;
+        CGFloat toViewControllerVisibleY = startRect.size.height - toViewControllerHeight;
+        CGFloat toViewControllerDismissY = transformedPoint.y - toViewControllerVisibleY;
+        
+        CGFloat toViewControllerWidth = startRect.size.width * self.topViewScale.widthScale;
+        CGFloat toViewControllerX = startRect.size.width - toViewControllerWidth;
+        
+        toViewController.view.frame = CGRectMake(toViewControllerX, toViewControllerDismissY, toViewControllerWidth, toViewControllerHeight);
 
         if (toViewController.modalPresentationStyle == UIModalPresentationCustom) {
             [fromViewController beginAppearanceTransition:NO animated:YES];
@@ -142,10 +150,11 @@
                          animations:^{
                              fromViewController.view.transform = CGAffineTransformScale(fromViewController.view.transform, self.behindViewScale, self.behindViewScale);
                              fromViewController.view.alpha = self.behindViewAlpha;
-
-                             toViewController.view.frame = CGRectMake(0,0,
-                                                                      CGRectGetWidth(toViewController.view.frame),
-                                                                      CGRectGetHeight(toViewController.view.frame));
+                             toViewController.view.frame =
+                             CGRectMake(toViewControllerX,
+                                        toViewControllerVisibleY,
+                                        toViewControllerWidth,
+                                        toViewControllerHeight);
                          } completion:^(BOOL finished) {
                              if (toViewController.modalPresentationStyle == UIModalPresentationCustom) {
                                  [fromViewController endAppearanceTransition];
@@ -167,10 +176,12 @@
         toViewController.view.alpha = self.behindViewAlpha;
 
         CGRect endRect;
-
+        CGFloat toViewControllerDismissY = CGRectGetHeight(fromViewController.view.bounds) + fromViewController.view.frame.origin.y;
+        CGFloat toViewControllerDismissX = fromViewController.view.frame.origin.x;
+        
         if (self.direction == ZFModalTransitonDirectionBottom) {
-            endRect = CGRectMake(0,
-                                 CGRectGetHeight(fromViewController.view.bounds),
+            endRect = CGRectMake(toViewControllerDismissX,
+                                 toViewControllerDismissY,
                                  CGRectGetWidth(fromViewController.view.frame),
                                  CGRectGetHeight(fromViewController.view.frame));
         } else if (self.direction == ZFModalTransitonDirectionLeft) {
@@ -318,8 +329,9 @@
 
     CGRect updateRect;
     if (self.direction == ZFModalTransitonDirectionBottom) {
-        updateRect = CGRectMake(0,
-                                (CGRectGetHeight(fromViewController.view.bounds) * percentComplete),
+        CGFloat top = self.transitionContext.containerView.frame.size.height * (1.0 - self.topViewScale.heightScale);
+        updateRect = CGRectMake(fromViewController.view.frame.origin.x,
+                                (CGRectGetHeight(fromViewController.view.bounds) * percentComplete) + top,
                                 CGRectGetWidth(fromViewController.view.frame),
                                 CGRectGetHeight(fromViewController.view.frame));
     } else if (self.direction == ZFModalTransitonDirectionLeft) {
@@ -358,8 +370,9 @@
     CGRect endRect;
 
     if (self.direction == ZFModalTransitonDirectionBottom) {
-        endRect = CGRectMake(0,
-                             CGRectGetHeight(fromViewController.view.bounds),
+        CGFloat top = self.transitionContext.containerView.frame.size.height * (1.0 - self.topViewScale.heightScale);
+        endRect = CGRectMake(fromViewController.view.frame.origin.x,
+                             CGRectGetHeight(fromViewController.view.bounds) + top,
                              CGRectGetWidth(fromViewController.view.frame),
                              CGRectGetHeight(fromViewController.view.frame));
     } else if (self.direction == ZFModalTransitonDirectionLeft) {
@@ -415,8 +428,8 @@
                      animations:^{
                          toViewController.view.layer.transform = self.tempTransform;
                          toViewController.view.alpha = self.behindViewAlpha;
-
-                         fromViewController.view.frame = CGRectMake(0,0,
+                         CGFloat top = self.transitionContext.containerView.frame.size.height * (1.0 - self.topViewScale.heightScale);
+                         fromViewController.view.frame = CGRectMake(fromViewController.view.frame.origin.x,top,
                                                                     CGRectGetWidth(fromViewController.view.frame),
                                                                     CGRectGetHeight(fromViewController.view.frame));
                      } completion:^(BOOL finished) {

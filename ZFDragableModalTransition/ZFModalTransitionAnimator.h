@@ -15,6 +15,11 @@ typedef NS_ENUM(NSUInteger, ZFModalTransitonDirection) {
     ZFModalTransitonDirectionRight,
 };
 
+typedef struct {
+    CGFloat widthScale;
+    CGFloat heightScale;
+}ZFModalTransitonSizeScale;
+
 @interface ZFDetectScrollViewEndGestureRecognizer : UIPanGestureRecognizer
 @property (nonatomic, weak) UIScrollView *scrollview;
 @end
@@ -28,6 +33,7 @@ typedef NS_ENUM(NSUInteger, ZFModalTransitonDirection) {
 @property (nonatomic) ZFModalTransitonDirection direction;
 @property CGFloat behindViewScale;
 @property CGFloat behindViewAlpha;
+@property ZFModalTransitonSizeScale topViewScale;
 @property CGFloat transitionDuration;
 
 - (id)initWithModalViewController:(UIViewController *)modalViewController;

@@ -41,6 +41,7 @@
     self.animator.behindViewAlpha = 0.5f;
     self.animator.behindViewScale = 0.5f;
     self.animator.transitionDuration = 0.7f;
+    self.animator.topViewScale = (ZFModalTransitonSizeScale){1.0, 0.8};
     
     if (self.scrollViewSwitch.isOn) {
         [self.animator setContentScrollView:modalVC.scrollView];
